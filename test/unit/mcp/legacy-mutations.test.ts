@@ -26,6 +26,14 @@ describe('legacy mutation protection', () => {
       const client = new Client({ name: 'security-test', version: '1' });
       cleanup.push(() => client.close());
       await client.connect(transport);
+      const listed = await client.listTools();
+      const deletion = listed.tools.find(tool => tool.name === 'whmcs_delete_client')!;
+      expect(deletion.inputSchema.required).toContain('clientid');
+      expect(deletion.inputSchema.properties?.confirm).toMatchObject({ type: 'boolean' });
+      const beforeInvalid = mock.lastRequest();
+      const invalid = await client.callTool({ name: 'whmcs_delete_client', arguments: { clientid: '1', confirm: true } });
+      expect(invalid.isError).toBe(true);
+      expect(mock.lastRequest()).toBe(beforeInvalid);
       for (const [name, args] of [
         ['whmcs_delete_client', { clientid: 1 }],
         ['whmcs_module_terminate', { accountid: 1 }],
