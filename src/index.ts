@@ -7,6 +7,7 @@
  */
 
 import 'dotenv/config';
+import { requireMutations } from './mcp/mutations.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod';
@@ -121,6 +122,7 @@ server.registerTool(
         title: 'Add Client',
         description: 'Create a new client in WHMCS',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             firstname: z.string().describe('Client first name'),
             lastname: z.string().describe('Client last name'),
             email: z.string().email().describe('Client email address'),
@@ -140,7 +142,8 @@ server.registerTool(
             noemail: z.boolean().optional().describe('Do not send welcome email'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_add_client', confirm);
         const result = await whmcsClient.addClient(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -154,6 +157,7 @@ server.registerTool(
         title: 'Update Client',
         description: 'Update an existing client in WHMCS',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             clientid: z.number().describe('The client ID to update'),
             firstname: z.string().optional().describe('Client first name'),
             lastname: z.string().optional().describe('Client last name'),
@@ -173,7 +177,8 @@ server.registerTool(
             language: z.string().optional().describe('Client language'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_update_client', confirm);
         const result = await whmcsClient.updateClient(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -187,10 +192,12 @@ server.registerTool(
         title: 'Delete Client',
         description: 'Delete a client from WHMCS (use with caution)',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             clientid: z.number().describe('The client ID to delete'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_delete_client', confirm);
         const result = await whmcsClient.deleteClient(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -315,6 +322,7 @@ server.registerTool(
         title: 'Create Invoice',
         description: 'Create a new invoice for a client',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             userid: z.number().describe('Client ID'),
             status: z.enum(['Draft', 'Unpaid', 'Paid', 'Cancelled', 'Refunded', 'Collections']).optional().describe('Invoice status'),
             sendinvoice: z.boolean().optional().describe('Send invoice email'),
@@ -329,7 +337,8 @@ server.registerTool(
             itemtaxed: z.array(z.boolean()).optional().describe('Line items taxed flags'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_create_invoice', confirm);
         const result = await whmcsClient.createInvoice(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -343,6 +352,7 @@ server.registerTool(
         title: 'Update Invoice',
         description: 'Update an existing invoice',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             invoiceid: z.number().describe('Invoice ID to update'),
             status: z.enum(['Draft', 'Unpaid', 'Paid', 'Cancelled', 'Refunded', 'Collections']).optional().describe('New status'),
             paymentmethod: z.string().optional().describe('Payment method'),
@@ -353,7 +363,8 @@ server.registerTool(
             publishandsendemail: z.boolean().optional().describe('Publish and send email'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_update_invoice', confirm);
         const result = await whmcsClient.updateInvoice(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -367,6 +378,7 @@ server.registerTool(
         title: 'Add Payment',
         description: 'Record a payment on an invoice',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             invoiceid: z.number().describe('Invoice ID'),
             transid: z.string().describe('Transaction ID'),
             gateway: z.string().describe('Payment gateway name'),
@@ -376,7 +388,8 @@ server.registerTool(
             date: z.string().optional().describe('Payment date (YYYY-MM-DD)'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_add_payment', confirm);
         const result = await whmcsClient.addPayment(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -455,6 +468,7 @@ server.registerTool(
         title: 'Open Ticket',
         description: 'Create a new support ticket',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             deptid: z.number().describe('Department ID'),
             subject: z.string().describe('Ticket subject'),
             message: z.string().describe('Ticket message/description'),
@@ -469,7 +483,8 @@ server.registerTool(
             markdown: z.boolean().optional().describe('Message contains markdown'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_open_ticket', confirm);
         const result = await whmcsClient.openTicket(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -483,6 +498,7 @@ server.registerTool(
         title: 'Add Ticket Reply',
         description: 'Reply to an existing support ticket',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             ticketid: z.number().describe('Ticket ID'),
             message: z.string().describe('Reply message'),
             clientid: z.number().optional().describe('Client ID'),
@@ -495,7 +511,8 @@ server.registerTool(
             markdown: z.boolean().optional().describe('Message contains markdown'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_add_ticket_reply', confirm);
         const result = await whmcsClient.addTicketReply(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -509,6 +526,7 @@ server.registerTool(
         title: 'Update Ticket',
         description: 'Update ticket properties',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             ticketid: z.number().describe('Ticket ID'),
             deptid: z.number().optional().describe('Department ID'),
             subject: z.string().optional().describe('Subject'),
@@ -520,7 +538,8 @@ server.registerTool(
             flag: z.number().optional().describe('Flag to admin ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_update_ticket', confirm);
         const result = await whmcsClient.updateTicket(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -534,10 +553,12 @@ server.registerTool(
         title: 'Delete Ticket',
         description: 'Delete a support ticket (use with caution)',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             ticketid: z.number().describe('Ticket ID to delete'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_delete_ticket', confirm);
         const result = await whmcsClient.deleteTicket(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -589,11 +610,13 @@ server.registerTool(
         title: 'Register Domain',
         description: 'Send domain registration command to registrar',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             domainid: z.number().optional().describe('Domain ID'),
             domain: z.string().optional().describe('Domain name'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_register_domain', confirm);
         const result = await whmcsClient.registerDomain(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -607,10 +630,12 @@ server.registerTool(
         title: 'Transfer Domain',
         description: 'Send domain transfer command to registrar',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             domainid: z.number().describe('Domain ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_transfer_domain', confirm);
         const result = await whmcsClient.transferDomain(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -624,10 +649,12 @@ server.registerTool(
         title: 'Renew Domain',
         description: 'Send domain renewal command to registrar',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             domainid: z.number().describe('Domain ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_renew_domain', confirm);
         const result = await whmcsClient.renewDomain(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -675,6 +702,7 @@ server.registerTool(
         title: 'Update Domain Nameservers',
         description: 'Update nameservers for a domain',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             domainid: z.number().describe('Domain ID'),
             ns1: z.string().optional().describe('Nameserver 1'),
             ns2: z.string().optional().describe('Nameserver 2'),
@@ -683,7 +711,8 @@ server.registerTool(
             ns5: z.string().optional().describe('Nameserver 5'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_update_domain_nameservers', confirm);
         const result = await whmcsClient.updateDomainNameservers(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -714,11 +743,13 @@ server.registerTool(
         title: 'Update Domain Lock Status',
         description: 'Lock or unlock a domain',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             domainid: z.number().describe('Domain ID'),
             lockstatus: z.boolean().optional().describe('Lock status (true to lock)'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_update_domain_lock_status', confirm);
         const result = await whmcsClient.updateDomainLockingStatus(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -774,6 +805,7 @@ server.registerTool(
         title: 'Accept Order',
         description: 'Accept and process a pending order',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             orderid: z.number().describe('Order ID'),
             serverid: z.number().optional().describe('Server to provision on'),
             serviceusername: z.string().optional().describe('Username for service'),
@@ -783,7 +815,8 @@ server.registerTool(
             sendemail: z.boolean().optional().describe('Send setup email'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_accept_order', confirm);
         const result = await whmcsClient.acceptOrder(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -797,12 +830,14 @@ server.registerTool(
         title: 'Cancel Order',
         description: 'Cancel an order',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             orderid: z.number().describe('Order ID'),
             cancelsub: z.boolean().optional().describe('Cancel subscription'),
             noemail: z.boolean().optional().describe('Do not send email'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_cancel_order', confirm);
         const result = await whmcsClient.cancelOrder(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -816,10 +851,12 @@ server.registerTool(
         title: 'Delete Order',
         description: 'Delete an order (use with caution)',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             orderid: z.number().describe('Order ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_delete_order', confirm);
         const result = await whmcsClient.deleteOrder(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -833,11 +870,13 @@ server.registerTool(
         title: 'Mark Order as Fraud',
         description: 'Mark an order as fraudulent',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             orderid: z.number().describe('Order ID'),
             cancelsub: z.boolean().optional().describe('Cancel subscription'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_fraud_order', confirm);
         const result = await whmcsClient.fraudOrder(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -851,10 +890,12 @@ server.registerTool(
         title: 'Set Order to Pending',
         description: 'Set an order status to pending',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             orderid: z.number().describe('Order ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_pending_order', confirm);
         const result = await whmcsClient.pendingOrder(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -893,10 +934,12 @@ server.registerTool(
         title: 'Module Create',
         description: 'Create/provision a service account',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             accountid: z.number().describe('Service ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_module_create', confirm);
         const result = await whmcsClient.moduleCreate(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -910,11 +953,13 @@ server.registerTool(
         title: 'Module Suspend',
         description: 'Suspend a service account',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             accountid: z.number().describe('Service ID'),
             suspendreason: z.string().optional().describe('Suspension reason'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_module_suspend', confirm);
         const result = await whmcsClient.moduleSuspend(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -928,10 +973,12 @@ server.registerTool(
         title: 'Module Unsuspend',
         description: 'Unsuspend a service account',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             accountid: z.number().describe('Service ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_module_unsuspend', confirm);
         const result = await whmcsClient.moduleUnsuspend(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -945,10 +992,12 @@ server.registerTool(
         title: 'Module Terminate',
         description: 'Terminate a service account',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             accountid: z.number().describe('Service ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_module_terminate', confirm);
         const result = await whmcsClient.moduleTerminate(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -962,11 +1011,13 @@ server.registerTool(
         title: 'Module Change Password',
         description: 'Change password for a service account',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             accountid: z.number().describe('Service ID'),
             servicepassword: z.string().optional().describe('New password'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_module_change_password', confirm);
         const result = await whmcsClient.moduleChangePassword(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1054,11 +1105,13 @@ server.registerTool(
         title: 'Log Activity',
         description: 'Add an entry to the activity log',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             description: z.string().describe('Activity description'),
             userid: z.number().optional().describe('Associated user ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_log_activity', confirm);
         const result = await whmcsClient.logActivity(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1090,6 +1143,7 @@ server.registerTool(
         title: 'Send Email',
         description: 'Send an email to a client',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             messagename: z.string().optional().describe('Email template name'),
             id: z.number().optional().describe('Related ID (client, invoice, etc.)'),
             customtype: z.string().optional().describe('Custom type'),
@@ -1097,7 +1151,8 @@ server.registerTool(
             custommessage: z.string().optional().describe('Custom message'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_send_email', confirm);
         const result = await whmcsClient.sendEmail(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1152,10 +1207,12 @@ server.registerTool(
         title: 'Activate Affiliate',
         description: 'Activate a client as an affiliate',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             userid: z.number().describe('Client ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_activate_affiliate', confirm);
         const result = await whmcsClient.affiliateActivate(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1216,6 +1273,7 @@ server.registerTool(
         title: 'Create Quote',
         description: 'Create a new quote',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             subject: z.string().describe('Quote subject'),
             stage: z.enum(['Draft', 'Delivered', 'On Hold', 'Accepted', 'Lost', 'Dead']).describe('Quote stage'),
             validuntil: z.string().describe('Valid until date (YYYY-MM-DD)'),
@@ -1229,7 +1287,8 @@ server.registerTool(
             adminnotes: z.string().optional().describe('Admin notes'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_create_quote', confirm);
         const result = await whmcsClient.createQuote(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1243,10 +1302,12 @@ server.registerTool(
         title: 'Accept Quote',
         description: 'Accept a quote and convert to invoice',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             quoteid: z.number().describe('Quote ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_accept_quote', confirm);
         const result = await whmcsClient.acceptQuote(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
@@ -1260,10 +1321,12 @@ server.registerTool(
         title: 'Delete Quote',
         description: 'Delete a quote',
         inputSchema: {
+            confirm: z.boolean().optional().describe('Must be true to confirm this mutating operation'),
             quoteid: z.number().describe('Quote ID'),
         },
     },
-    async (params) => {
+    async ({ confirm, ...params }) => {
+        requireMutations('whmcs_delete_quote', confirm);
         const result = await whmcsClient.deleteQuote(params);
         return {
             content: [{ type: 'text', text: JSON.stringify(result, null, 2) }],
