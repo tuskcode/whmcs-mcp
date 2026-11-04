@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { vi, describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { WhmcsClient } from '../../../../src/whmcs/client';
 import { DomainOpsDomain } from '../../../../src/whmcs/domains/domain-ops';
 import { startMockWhmcs, type MockWhmcsServer } from '../../../mock-whmcs';
@@ -8,6 +8,9 @@ let server: MockWhmcsServer;
 let domainOps: DomainOpsDomain;
 
 beforeAll(async () => {
+  // Keep fixed-date fixtures reproducible without mocking HTTP or other timers.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-04-15T12:00:00Z'));
   server = await startMockWhmcs({
     fixtures: {
       GetClientsDomains: domainsFixture,
@@ -16,7 +19,7 @@ beforeAll(async () => {
   const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   domainOps = new DomainOpsDomain(client);
 });
-afterAll(async () => { await server.stop(); });
+afterAll(async () => { vi.useRealTimers(); await server.stop(); });
 
 describe('DomainOpsDomain.getPendingTransfers', () => {
   it('returns only domains with Pending Transfer status', async () => {

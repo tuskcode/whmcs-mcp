@@ -240,3 +240,34 @@ docker build --secret id=proxy_ca,src="$CODEX_PROXY_CERT" -t whmcs-mcp:local .
 
 When runtime HTTPS also uses that proxy, mount its CA read-only and set
 `NODE_EXTRA_CA_CERTS` to the mounted path. The image does not contain a session CA.
+
+## CI/CD publication to GHCR
+
+The **CI and GHCR** GitHub Actions workflow first runs locked installation,
+TypeScript checks, build, tests and dependency audit on Node.js 22 and 24.
+Only after both validations pass does it build Linux AMD64 and ARM64 images.
+Pull requests validate and build without logging in or publishing. Pushes to
+`main` or `work`, tags matching `v*`, and manual runs publish using the built-in
+`GITHUB_TOKEN` with `packages: write`; no personal token or registry secret is
+needed. Enable GitHub Actions for this fork if GitHub shows a disabled-workflows
+notice. Organization policies must permit package publication and the actions
+used by this workflow.
+
+For this fork the image is `ghcr.io/tuskcode/whmcs-mcp`:
+
+- `:work` tracks successful builds of the development branch.
+- `:main` and `:latest` track successful builds of `main`.
+- A release tag such as `v1.2.3` publishes `:1.2.3` and `:1.2`.
+- Every published build also has a `:sha-<short-commit>` tag and a digest.
+
+Example after the first successful publication:
+
+```bash
+docker pull ghcr.io/tuskcode/whmcs-mcp:work
+docker run --rm -i --env-file .env ghcr.io/tuskcode/whmcs-mcp:work
+```
+
+Provenance attestations and SBOMs are generated for the images. New GHCR packages
+may initially be private: change visibility in the package settings for anonymous
+pulls, or authenticate with an account allowed to read the package. Publication
+is performed by GitHub Actions; a local build alone does not publish an image.
