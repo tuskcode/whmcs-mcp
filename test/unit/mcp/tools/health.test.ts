@@ -19,6 +19,9 @@ let registrations: Record<string, Handler>;
 let mockMcpServer: { registerTool: ReturnType<typeof vi.fn> };
 
 beforeAll(async () => {
+  // Keep fixed-date fixtures reproducible without mocking HTTP or other timers.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-04-15T12:00:00Z'));
   whmcsServer = await startMockWhmcs({
     fixtures: {
       GetStats: statsFixture,
@@ -31,7 +34,7 @@ beforeAll(async () => {
   const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: whmcsServer.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   health = new HealthDomain(client);
 });
-afterAll(async () => { await whmcsServer.stop(); });
+afterAll(async () => { vi.useRealTimers(); await whmcsServer.stop(); });
 
 beforeEach(() => {
   registrations = {};

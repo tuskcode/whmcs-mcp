@@ -12,6 +12,9 @@ let server: MockWhmcsServer;
 let domainOps: DomainOpsDomain;
 
 beforeAll(async () => {
+  // Keep fixed-date fixtures reproducible without mocking HTTP or other timers.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(new Date('2026-04-15T12:00:00Z'));
   server = await startMockWhmcs({
     fixtures: {
       GetClientsDomains: domainsFixture,
@@ -20,7 +23,7 @@ beforeAll(async () => {
   const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   domainOps = new DomainOpsDomain(client);
 });
-afterAll(async () => { await server.stop(); });
+afterAll(async () => { vi.useRealTimers(); await server.stop(); });
 
 function makeServer() {
   const handlers: Record<string, Handler> = {};
