@@ -17,7 +17,7 @@ beforeAll(async () => {
       GetClientsProducts: clientProductsFixture,
     },
   });
-  const client = new WhmcsClient({ apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   products = new ProductDomain(client);
 });
 afterAll(async () => { await server.stop(); });

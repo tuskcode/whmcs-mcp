@@ -207,3 +207,36 @@ docker exec whmcs-mcp-server whoami
 | Production | ~150MB |
 
 The multi-stage build ensures the final image is as small as possible by excluding development dependencies and build tools.
+
+## Build and run your verified fork
+
+Use Node.js 24 in the multi-stage Dockerfile. From the checkout root:
+
+```bash
+docker build -t whmcs-mcp:local .
+docker run --rm -i --env-file .env whmcs-mcp:local
+```
+
+This builds this checkout, rather than downloading a previous author's application
+image. The runtime runs as the unprivileged `node` user and contains production
+dependencies and compiled output only. `.env*` files are excluded from build
+context; provide credentials at runtime. Use an HTTPS WHMCS URL without redirects.
+The server uses stdio: connect it through an MCP client with command `docker` and
+arguments `run --rm -i --env-file /absolute/path/to/.env whmcs-mcp:local`.
+Do not use `-t` (a terminal can interfere with JSON-RPC). Initialization and
+`tools/list` through the client are the readiness checks; no web port is exposed.
+
+Mutations default to disabled; enabling `WHMCS_ALLOW_MUTATIONS=true` also requires
+`confirm: true` on each mutating tool call. Read the data handling restrictions in
+[Configuration](CONFIGURATION.md#data-visible-to-mcp-clients), including redaction
+of module payloads and SSO tokens/links.
+
+For managed environments with an HTTPS inspection proxy, keep TLS verification
+and pass its public CA as a BuildKit secret (not a build argument or COPY):
+
+```bash
+docker build --secret id=proxy_ca,src="$CODEX_PROXY_CERT" -t whmcs-mcp:local .
+```
+
+When runtime HTTPS also uses that proxy, mount its CA read-only and set
+`NODE_EXTRA_CA_CERTS` to the mounted path. The image does not contain a session CA.

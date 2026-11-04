@@ -33,7 +33,7 @@ beforeAll(async () => {
       ModuleCustom: moduleCustomFixture,
     },
   });
-  const client = new WhmcsClient({ apiUrl: whmcsServer.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: whmcsServer.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   prov = new ProvisioningDomain(client);
 });
 afterAll(async () => { await whmcsServer.stop(); });

@@ -9,7 +9,7 @@ let system: SystemDomain;
 
 beforeAll(async () => {
   server = await startMockWhmcs({ fixtures: { GetStats: fixture } });
-  const client = new WhmcsClient({ apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   system = new SystemDomain(client);
 });
 afterAll(async () => { await server.stop(); });

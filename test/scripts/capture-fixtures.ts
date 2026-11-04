@@ -17,6 +17,7 @@ async function main() {
     }),
   );
   const client = new WhmcsClient({
+    allowInsecureLocalhost: process.env.WHMCS_ALLOW_INSECURE_LOCALHOST === 'true',
     apiUrl: required('WHMCS_API_URL'),
     identifier: required('WHMCS_API_IDENTIFIER'),
     secret: required('WHMCS_API_SECRET'),

@@ -1,10 +1,12 @@
+import { redact } from '../security/redact.js';
+import { apiEndpoint } from '../security/endpoint.js';
 import type { WhmcsApiResponse, WhmcsClientConfig } from './types.js';
 
 export class WhmcsClient {
-  private baseUrl: string;
+  private endpoint: string;
 
   constructor(private config: WhmcsClientConfig) {
-    this.baseUrl = config.apiUrl.endsWith('/') ? config.apiUrl : config.apiUrl + '/';
+    this.endpoint = apiEndpoint(config.apiUrl, config.allowInsecureLocalhost);
   }
 
   async call<T extends Record<string, unknown> = Record<string, unknown>>(
@@ -22,23 +24,22 @@ export class WhmcsClient {
       ),
     });
 
-    const url = `${this.baseUrl}includes/api.php`;
+    const url = this.endpoint;
 
     if (process.env.WHMCS_DEBUG === 'true') {
-      console.error(`[whmcs-mcp] → ${action}`, Object.fromEntries(
-        Object.entries(params).filter(([k]) => k !== 'secret' && k !== 'identifier'),
-      ));
+      console.error('[whmcs-mcp] API request');
     }
 
     let res: Response;
     try {
       res = await fetch(url, {
         method: 'POST',
+        redirect: 'error',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
       });
     } catch (err) {
-      throw new Error(`WHMCS connection error (${action}): ${(err as Error).message}`);
+      throw new Error(`WHMCS connection error (${action})`);
     }
 
     if (!res.ok) {
@@ -48,7 +49,7 @@ export class WhmcsClient {
     const rawText = await res.text();
 
     if (process.env.WHMCS_DEBUG === 'true') {
-      console.error(`[whmcs-mcp] ← ${action} (${res.status}): ${rawText.slice(0, 500)}`);
+      console.error(`[whmcs-mcp] API response (${res.status})`);
     }
 
     // WHMCS sometimes returns HTML (PHP errors/warnings) instead of JSON
@@ -56,14 +57,10 @@ export class WhmcsClient {
     try {
       data = JSON.parse(rawText) as T & WhmcsApiResponse;
     } catch {
-      // Extract useful info from the HTML error
-      const snippet = rawText.slice(0, 300).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      throw new Error(
-        `WHMCS returned non-JSON response for "${action}". ` +
-        `This usually means WHMCS has PHP errors/warnings enabled, or the API action is not supported. ` +
-        `Response preview: ${snippet}`,
-      );
+      throw new Error(`WHMCS returned non-JSON response for "${action}"`);
     }
+
+    data = redact(data, [this.config.identifier, this.config.secret, this.config.accesskey]);
 
     if (data.result === 'error') {
       throw new Error(`WHMCS API error (${action}): ${data.message ?? 'unknown'}`);

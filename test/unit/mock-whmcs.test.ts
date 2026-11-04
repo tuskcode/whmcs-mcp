@@ -114,11 +114,11 @@ describe('mock-whmcs', () => {
     const [resA, resB] = await Promise.all([
       fetch(`${server.url}/includes/api.php`, {
         method: 'POST',
-        body: new URLSearchParams({ action: 'ConcA', identifier: 'id', secret: 'sec', responsetype: 'json' }),
+        body: new URLSearchParams({ action: 'ConcA', identifier: 'fixture-identifier', secret: 'fixture-secret', responsetype: 'json' }),
       }),
       fetch(`${server.url}/includes/api.php`, {
         method: 'POST',
-        body: new URLSearchParams({ action: 'ConcB', identifier: 'id', secret: 'sec', responsetype: 'json' }),
+        body: new URLSearchParams({ action: 'ConcB', identifier: 'fixture-identifier', secret: 'fixture-secret', responsetype: 'json' }),
       }),
     ]);
 

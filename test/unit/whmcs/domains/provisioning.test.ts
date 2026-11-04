@@ -23,7 +23,7 @@ beforeAll(async () => {
       ModuleCustom: moduleCustomFixture,
     },
   });
-  const client = new WhmcsClient({ apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   prov = new ProvisioningDomain(client);
 });
 afterAll(async () => { await server.stop(); });
@@ -252,8 +252,8 @@ describe('ProvisioningDomain.getModuleDebugLog', () => {
     expect(result.source).toBe('module_log');
     expect(result.entries).toHaveLength(2);
     expect(result.entries[0].action).toBe('CreateAccount');
-    expect(result.entries[0].request).toContain('createacct');
-    expect(result.entries[0].response).toContain('domain already exists');
+    expect(result.entries[0].request).toBe('[REDACTED]');
+    expect(result.entries[0].response).toBe('[REDACTED]');
   });
 
   it('falls back to activity_log source when GetModuleLog fails', async () => {

@@ -13,9 +13,10 @@ beforeAll(async () => {
     },
   });
   client = new WhmcsClient({
+    allowInsecureLocalhost: true,
     apiUrl: server.url + '/',
-    identifier: 'id',
-    secret: 'sec',
+    identifier: 'fixture-identifier',
+    secret: 'fixture-secret',
   });
 });
 
@@ -32,8 +33,8 @@ describe('WhmcsClient', () => {
   it('sends auth params on every call', async () => {
     await client.call('GetStats');
     const last = server.lastRequest();
-    expect(last?.params.get('identifier')).toBe('id');
-    expect(last?.params.get('secret')).toBe('sec');
+    expect(last?.params.get('identifier')).toBe('fixture-identifier');
+    expect(last?.params.get('secret')).toBe('fixture-secret');
     expect(last?.params.get('responsetype')).toBe('json');
   });
 
@@ -43,9 +44,10 @@ describe('WhmcsClient', () => {
 
   it('includes optional access key when configured', async () => {
     const c2 = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: server.url + '/',
-      identifier: 'id',
-      secret: 'sec',
+      identifier: 'fixture-identifier',
+      secret: 'fixture-secret',
       accesskey: 'KEY',
     });
     await c2.call('GetStats');
@@ -76,7 +78,7 @@ describe('WhmcsClient', () => {
     // Also check the raw body is URL-encoded form data
     const last = server.lastRequest()!;
     expect(last.rawBody).toContain('action=GetStats');
-    expect(last.rawBody).toContain('identifier=id');
+    expect(last.rawBody).toContain('identifier=fixture-identifier');
   });
 
   it('handles non-JSON response gracefully by throwing', async () => {
@@ -86,9 +88,10 @@ describe('WhmcsClient', () => {
     // The default unknown-action response is still JSON, so we test
     // the HTTP error path by using a client pointing to a bad URL
     const badClient = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: 'http://127.0.0.1:1/', // port 1 is not listening
-      identifier: 'id',
-      secret: 'sec',
+      identifier: 'fixture-identifier',
+      secret: 'fixture-secret',
     });
     await expect(badClient.call('Anything')).rejects.toThrow();
     await badServer.stop();
@@ -107,9 +110,10 @@ describe('WhmcsClient', () => {
 
   it('normalizes apiUrl by appending slash if missing', async () => {
     const c3 = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: server.url, // no trailing slash
-      identifier: 'id',
-      secret: 'sec',
+      identifier: 'fixture-identifier',
+      secret: 'fixture-secret',
     });
     const res = await c3.call<{ stats: { income_today: string } }>('GetStats');
     expect(res.stats.income_today).toBe('1.23');

@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   whmcs-mcp-server:
     build:
@@ -12,9 +10,10 @@ services:
       - WHMCS_API_IDENTIFIER=${WHMCS_API_IDENTIFIER}
       - WHMCS_API_SECRET=${WHMCS_API_SECRET}
       - WHMCS_ACCESS_KEY=${WHMCS_ACCESS_KEY:-}
+      - WHMCS_ALLOW_MUTATIONS=${WHMCS_ALLOW_MUTATIONS:-false}
     # For stdio-based MCP servers, we need stdin/stdout
     stdin_open: true
-    tty: true
+    tty: false
     # Optional: Add network restrictions for security
     # networks:
     #   - mcp-network

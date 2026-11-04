@@ -1,55 +1,23 @@
-# Build stage
-FROM node:20-alpine AS builder
-
+# syntax=docker/dockerfile:1
+FROM node:24-alpine AS builder
 WORKDIR /app
-
-# Copy package files
-COPY package*.json ./
-
-# Install dependencies
-RUN npm ci
-
-# Copy source code
+COPY --chmod=644 package.json package-lock.json ./
+# Optional CA for environments with an HTTPS inspection proxy; never stored in layers.
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci --no-audit --no-fund
 COPY tsconfig.json ./
 COPY src/ ./src/
-
-# Build TypeScript
 RUN npm run build
 
-# Production stage
-FROM node:20-alpine AS production
-
+FROM node:24-alpine AS production
+ENV NODE_ENV=production
 WORKDIR /app
-
-# Create non-root user for security
-RUN addgroup -g 1001 -S mcpuser && \
-    adduser -S mcpuser -u 1001
-
-# Copy package files
-COPY package*.json ./
-
-# Install production dependencies only
-RUN npm ci --only=production && \
-    npm cache clean --force
-
-# Copy built files from builder
-COPY --from=builder /app/dist ./dist
-
-# Set ownership
-RUN chown -R mcpuser:mcpuser /app
-
-# Switch to non-root user
-USER mcpuser
-
-# Environment variables (to be overridden at runtime)
-ENV WHMCS_API_URL=""
-ENV WHMCS_API_IDENTIFIER=""
-ENV WHMCS_API_SECRET=""
-ENV WHMCS_ACCESS_KEY=""
-
-# Health check - verify node process is running
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "console.log('healthy')" || exit 1
-
-# Run the MCP server
+COPY --chmod=644 package.json package-lock.json ./
+RUN --mount=type=secret,id=proxy_ca \
+    if [ -f /run/secrets/proxy_ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/proxy_ca; fi; \
+    npm ci --omit=dev --no-audit --no-fund && npm cache clean --force
+COPY --from=builder --chown=node:node /app/dist ./dist
+USER node
+# stdio MCP has no HTTP health endpoint. Its client validates initialization.
 CMD ["node", "dist/index.js"]
