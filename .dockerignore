@@ -46,3 +46,10 @@ npm-debug.log*
 *.tmp
 *.temp
 .cache/
+
+# All local environment/agent files and test fixtures
+.env*
+.claude/
+.agents/
+.codex/
+test/
