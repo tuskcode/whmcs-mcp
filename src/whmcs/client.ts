@@ -1,10 +1,11 @@
+import { apiEndpoint } from '../security/endpoint.js';
 import type { WhmcsApiResponse, WhmcsClientConfig } from './types.js';
 
 export class WhmcsClient {
-  private baseUrl: string;
+  private endpoint: string;
 
   constructor(private config: WhmcsClientConfig) {
-    this.baseUrl = config.apiUrl.endsWith('/') ? config.apiUrl : config.apiUrl + '/';
+    this.endpoint = apiEndpoint(config.apiUrl, config.allowInsecureLocalhost);
   }
 
   async call<T extends Record<string, unknown> = Record<string, unknown>>(
@@ -22,7 +23,7 @@ export class WhmcsClient {
       ),
     });
 
-    const url = `${this.baseUrl}includes/api.php`;
+    const url = this.endpoint;
 
     if (process.env.WHMCS_DEBUG === 'true') {
       console.error(`[whmcs-mcp] → ${action}`, Object.fromEntries(
@@ -34,6 +35,7 @@ export class WhmcsClient {
     try {
       res = await fetch(url, {
         method: 'POST',
+        redirect: 'error',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
       });

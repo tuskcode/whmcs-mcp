@@ -1,3 +1,4 @@
+import { apiEndpoint } from './security/endpoint.js';
 /**
  * WHMCS API Client
  * Handles authentication and API requests to WHMCS installations
@@ -7,6 +8,7 @@ export interface WhmcsConfig {
     apiUrl: string;          // WHMCS installation URL (e.g., https://example.com/whmcs/)
     apiIdentifier: string;   // API credential identifier
     apiSecret: string;       // API credential secret
+    allowInsecureLocalhost?: boolean;
     accessKey?: string;      // Optional access key for additional security
 }
 
@@ -27,7 +29,7 @@ export class WhmcsApiClient {
      * Make an API request to WHMCS
      */
     async call<T extends WhmcsApiResponse>(action: string, params: Record<string, unknown> = {}): Promise<T> {
-        const url = `${this.config.apiUrl.replace(/\/$/, '')}/includes/api.php`;
+        const url = apiEndpoint(this.config.apiUrl, this.config.allowInsecureLocalhost);
         
         const postData: Record<string, string> = {
             identifier: this.config.apiIdentifier,
@@ -43,6 +45,7 @@ export class WhmcsApiClient {
 
         const response = await fetch(url, {
             method: 'POST',
+            redirect: 'error',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },

@@ -34,6 +34,7 @@ import { registerInvestigativePrompts } from './mcp/prompts/investigate.js';
 
 // Environment variables for WHMCS connection
 const config: WhmcsConfig = {
+    allowInsecureLocalhost: process.env.WHMCS_ALLOW_INSECURE_LOCALHOST === 'true',
     apiUrl: process.env.WHMCS_API_URL || '',
     apiIdentifier: process.env.WHMCS_API_IDENTIFIER || '',
     apiSecret: process.env.WHMCS_API_SECRET || '',
@@ -64,6 +65,7 @@ const server = new McpServer({
 
 // Wire up new modular tool registrations
 const newClient = new NewWhmcsClient({
+    allowInsecureLocalhost: process.env.WHMCS_ALLOW_INSECURE_LOCALHOST === 'true',
     apiUrl: process.env.WHMCS_API_URL!,
     identifier: process.env.WHMCS_API_IDENTIFIER!,
     secret: process.env.WHMCS_API_SECRET!,

@@ -17,7 +17,7 @@ beforeAll(async () => {
       UpdateTicket: updateTicketFixture,
     },
   });
-  const client = new WhmcsClient({ apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
   actions = new ActionDomain(client);
 });
 afterAll(async () => { await server.stop(); });

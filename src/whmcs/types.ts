@@ -5,6 +5,7 @@ export interface WhmcsApiResponse {
 
 export interface WhmcsClientConfig {
   apiUrl: string;
+  allowInsecureLocalhost?: boolean;
   identifier: string;
   secret: string;
   accesskey?: string;

@@ -221,3 +221,16 @@ Once configured, you can:
 1. Run `npm run dev` to start the MCP server
 2. Use the tools through VS Code or another MCP client
 3. See the [API Reference](./API_REFERENCE.md) for available tools
+
+### Credential transport security
+
+`WHMCS_API_URL` must use HTTPS and point directly to the final WHMCS installation
+URL (without `includes/api.php`). Redirects are rejected, including redirects to
+another HTTPS host. Fix the configured URL instead of relying on redirection.
+URLs containing user information, query parameters or fragments are rejected.
+For local mock development only, `WHMCS_ALLOW_INSECURE_LOCALHOST=true` allows HTTP
+on `localhost`, `127.0.0.1` or `::1`. It never permits HTTP to remote hosts.
+
+All mutating MCP tools require `WHMCS_ALLOW_MUTATIONS=true` and `confirm: true`
+in each call. Grant the WHMCS API credential only the permissions actually needed;
+for read-only use, deny mutating API actions in WHMCS as well.

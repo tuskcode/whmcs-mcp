@@ -26,7 +26,7 @@ beforeAll(async () => {
       CreateSsoToken: ssoFixture,
     },
   });
-  const client = new WhmcsClient({ apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
   tl = new TimelineDomain(client);
 });
 afterAll(async () => { await server.stop(); });

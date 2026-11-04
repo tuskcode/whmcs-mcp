@@ -13,6 +13,7 @@ beforeAll(async () => {
     },
   });
   client = new WhmcsClient({
+    allowInsecureLocalhost: true,
     apiUrl: server.url + '/',
     identifier: 'id',
     secret: 'sec',
@@ -43,6 +44,7 @@ describe('WhmcsClient', () => {
 
   it('includes optional access key when configured', async () => {
     const c2 = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: server.url + '/',
       identifier: 'id',
       secret: 'sec',
@@ -86,6 +88,7 @@ describe('WhmcsClient', () => {
     // The default unknown-action response is still JSON, so we test
     // the HTTP error path by using a client pointing to a bad URL
     const badClient = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: 'http://127.0.0.1:1/', // port 1 is not listening
       identifier: 'id',
       secret: 'sec',
@@ -107,6 +110,7 @@ describe('WhmcsClient', () => {
 
   it('normalizes apiUrl by appending slash if missing', async () => {
     const c3 = new WhmcsClient({
+      allowInsecureLocalhost: true,
       apiUrl: server.url, // no trailing slash
       identifier: 'id',
       secret: 'sec',
