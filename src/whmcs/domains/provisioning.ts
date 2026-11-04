@@ -306,7 +306,7 @@ export class ProvisioningDomain {
       });
       const entries = res.logs?.log ?? [];
       return { source: 'module_log', entries: entries.map((e) => ({
-        date: e.date, action: e.action, request: e.request, response: e.response,
+        date: e.date, action: e.action, request: '[REDACTED]', response: '[REDACTED]',
       })) };
     } catch {
       // Fallback: use activity log filtered for module entries

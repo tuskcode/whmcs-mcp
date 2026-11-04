@@ -21,7 +21,7 @@ beforeAll(async () => {
       GetActivityLog: activityFixture,
     },
   });
-  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   inv = new InvoiceDomain(client);
 });
 afterAll(async () => { await server.stop(); });

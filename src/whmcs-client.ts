@@ -1,3 +1,4 @@
+import { redact } from './security/redact.js';
 import { apiEndpoint } from './security/endpoint.js';
 /**
  * WHMCS API Client
@@ -56,7 +57,7 @@ export class WhmcsApiClient {
             throw new Error(`WHMCS API request failed: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json() as T;
+        const data = redact(await response.json() as T, [this.config.apiIdentifier, this.config.apiSecret, this.config.accessKey]);
         
         if (data.result === 'error') {
             throw new Error(`WHMCS API error: ${data.message || 'Unknown error'}`);

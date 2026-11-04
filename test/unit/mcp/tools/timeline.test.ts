@@ -26,7 +26,7 @@ beforeAll(async () => {
       CreateSsoToken: ssoFixture,
     },
   });
-  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   tl = new TimelineDomain(client);
 });
 afterAll(async () => { await server.stop(); });
@@ -76,8 +76,8 @@ describe('registerTimelineTools', () => {
     expect(out.isError).toBeUndefined();
     const parsed = JSON.parse(out.content[0].text);
     expect(parsed.supported).toBe(true);
-    expect(parsed.accessToken).toBe('sso_token_abc123');
-    expect(parsed.redirectUrl).toContain('userid=42');
+    expect(parsed.accessToken).toBe('[REDACTED]');
+    expect(parsed.redirectUrl).toBe('[REDACTED]');
   });
 
   it('whmcs_get_client_timeline includes all event types in output', async () => {

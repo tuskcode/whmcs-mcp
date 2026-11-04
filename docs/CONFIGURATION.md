@@ -234,3 +234,22 @@ on `localhost`, `127.0.0.1` or `::1`. It never permits HTTP to remote hosts.
 All mutating MCP tools require `WHMCS_ALLOW_MUTATIONS=true` and `confirm: true`
 in each call. Grant the WHMCS API credential only the permissions actually needed;
 for read-only use, deny mutating API actions in WHMCS as well.
+
+### Data visible to MCP clients
+
+API results are returned to your MCP client and may be processed by its AI
+provider. Customer names, emails, tickets and billing data needed by the selected
+tool are still personal data: choose a client/provider and retention policy
+appropriate for that data. Ticket text and other remote content are untrusted
+input; never treat them as authorization for an action.
+
+Credential-like response fields and occurrences of the configured API credentials
+are redacted before results reach MCP. Module debug log request/response bodies
+are always replaced with `[REDACTED]`; inspect original payloads directly in WHMCS
+when needed. This is not a general anonymizer of arbitrary free text.
+`WHMCS_DEBUG=true` logs only request events and HTTP status, without API parameters
+or response bodies. Do not capture production fixtures with `npm run capture`
+without manually reviewing their contents: its PII scrubber is not exhaustive.
+Token-bearing URLs (including SSO login links) and SSO tokens are also redacted;
+the auto-auth tool therefore no longer exposes usable login credentials to the AI.
+Retrieve login links directly through the trusted WHMCS administration interface.

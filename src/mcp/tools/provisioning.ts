@@ -143,7 +143,7 @@ export function registerProvisioningTools(server: any, deps: ProvisioningToolDep
     {
       title: 'Get Module Debug Log',
       description:
-        'Returns raw module debug log entries (request/response payloads) when available (WHMCS 8.x), or falls back to activity log module entries. Use to debug provisioning API failures.',
+        'Returns module debug log metadata (request/response payloads are redacted) when available (WHMCS 8.x), or falls back to activity log module entries. Use to debug provisioning API failures.',
       inputSchema: {
         serviceId: z.number().optional().describe('Optional WHMCS service/product ID to filter by'),
         module: z.string().optional().describe('Optional module name to filter by (e.g. "cpanel")'),

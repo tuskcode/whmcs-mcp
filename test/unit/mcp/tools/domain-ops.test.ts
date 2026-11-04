@@ -17,7 +17,7 @@ beforeAll(async () => {
       GetClientsDomains: domainsFixture,
     },
   });
-  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   domainOps = new DomainOpsDomain(client);
 });
 afterAll(async () => { await server.stop(); });

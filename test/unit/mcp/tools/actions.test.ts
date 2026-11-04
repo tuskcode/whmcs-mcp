@@ -26,7 +26,7 @@ beforeAll(async () => {
       UpdateTicket: updateTicketFixture,
     },
   });
-  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: whmcsServer.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: whmcsServer.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   actions = new ActionDomain(client);
 });
 afterAll(async () => { await whmcsServer.stop(); });

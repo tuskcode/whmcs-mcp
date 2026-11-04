@@ -23,7 +23,7 @@ beforeAll(async () => {
       CreateSsoToken: ssoFixture,
     },
   });
-  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+  const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
   timeline = new TimelineDomain(client);
 });
 afterAll(async () => { await server.stop(); });
@@ -73,7 +73,7 @@ describe('TimelineDomain.getClientAutoAuthUrl', () => {
     const result = await timeline.getClientAutoAuthUrl(42, { hasCreateSsoToken: true });
     expect(result.supported).toBe(true);
     if (result.supported) {
-      expect(result.redirectUrl).toContain('userid=42');
+      expect(result.redirectUrl).toBe('[REDACTED]');
     }
   });
 
@@ -89,9 +89,9 @@ describe('TimelineDomain.getClientAutoAuthUrl', () => {
     const result = await timeline.getClientAutoAuthUrl(42, { hasCreateSsoToken: true });
     expect(result.supported).toBe(true);
     if (result.supported) {
-      expect(result.accessToken).toBe('sso_token_abc123');
-      expect(result.redirectUrl).toContain('userid=42');
-      expect(result.redirectUrl).toContain('token=sso_token_abc123');
+      expect(result.accessToken).toBe('[REDACTED]');
+      expect(result.redirectUrl).toBe('[REDACTED]');
+      expect(result.redirectUrl).toBe('[REDACTED]');
     }
   });
 });

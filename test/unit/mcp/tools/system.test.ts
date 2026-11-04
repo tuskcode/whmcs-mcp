@@ -14,7 +14,7 @@ afterAll(async () => { await server.stop(); });
 
 describe('registerSystemTools', () => {
   it('registers whmcs_get_stats and invokes the domain method', async () => {
-    const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'id', secret: 'sec' });
+    const client = new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: server.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
     const system = new SystemDomain(client);
 
     // Mock the McpServer — matches actual API: server.registerTool(name, opts, handler)

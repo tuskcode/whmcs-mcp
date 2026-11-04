@@ -13,7 +13,7 @@ afterEach(async () => {
 });
 
 const clientFor = (mock: MockWhmcsServer) =>
-  new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: mock.url + '/', identifier: 'id', secret: 'sec' });
+  new WhmcsClient({ allowInsecureLocalhost: true, apiUrl: mock.url + '/', identifier: 'fixture-identifier', secret: 'fixture-secret' });
 
 describe('probeCapabilities', () => {
   it('reports version and derives capability flags for WHMCS 8.x', async () => {
