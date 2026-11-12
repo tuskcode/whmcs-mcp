@@ -308,16 +308,28 @@ a WHMCS application error; no product is recreated or retried by MCP.
 
 ### Unsupported catalog operations
 
-Verified against the official action API index and reference on 2026-11-12:
+Verified again against the [official action API index](https://developers.whmcs.com/api/api-index)
+and reference on 2026-11-12:
 
-| Requested tool | Corresponding action | Availability |
-|----------------|----------------------|--------------|
-| `whmcs_update_product` | `UpdateProduct` | Not documented; tool not registered |
-| `whmcs_add_product_group` | `AddProductGroup` | Not documented; tool not registered |
-| `whmcs_update_product_group` | `UpdateProductGroup` | Not documented; tool not registered |
+| Requested tool | Public action API support | Implemented in repository | Registered/exposed by MCP | Configuration effect |
+|----------------|---------------------------|---------------------------|---------------------------|----------------------|
+| `whmcs_add_product` | Yes: `AddProduct` | Yes: `ProductDomain.addProduct` | Yes, always listed | Execution requires `WHMCS_ALLOW_MUTATIONS=true` and `confirm: true` |
+| `whmcs_update_product` | No documented `UpdateProduct` action | No | No | No setting enables an unimplemented tool |
+| `whmcs_add_product_group` | No documented `AddProductGroup` action | No | No | No setting enables an unimplemented tool |
+| `whmcs_update_product_group` | No documented `UpdateProductGroup` action | No | No | No setting enables an unimplemented tool |
+
+The missing tools were intentionally not implemented because no corresponding
+public action API operation was found. This is not a deployment filter, cached
+tool list, mutation configuration flag or missing API permission. In
+`src/index.ts`, startup calls `registerProductTools` without a mutation or version
+condition. `src/mcp/tools/products.ts` registers the three existing read tools and
+`whmcs_add_product`; `src/mcp/mutations.ts` checks authorization only when a write
+handler is invoked. Even with mutations disabled, `tools/list` still includes
+`whmcs_add_product`. SDK integration tests cover unset, `false` and `true` settings,
+and verify that calls to the three unsupported tool names never reach HTTP.
 
 Partial product updates and moving existing products between groups therefore
-remain admin UI operations. `UpdateClientProduct` changes a purchased client
+remain admin UI operations. [UpdateClientProduct](https://developers.whmcs.com/api-reference/updateclientproduct) changes a purchased client
 service, not a catalog product; `UpgradeProduct` also does not edit the catalog.
 No substitute actions, deletion tools, recreation, SQL or private admin requests
 are implemented. Tests verify the unsupported tools are absent and their calls

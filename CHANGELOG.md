@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 
 ### Catalog creation and HTTP diagnostics
+- Rechecked official catalog API availability and documented implementation,
+  registration and configuration status for all four requested operations.
+  Extended MCP SDK tests to verify identical tool discovery with mutations unset,
+  disabled and enabled, while unauthorized calls never reach HTTP.
 - Added `whmcs_add_product` using the public `AddProduct` action and the existing
   mutation guard (`WHMCS_ALLOW_MUTATIONS=true` plus boolean `confirm: true`).
   Strict Zod validation supports the documented product options without injecting

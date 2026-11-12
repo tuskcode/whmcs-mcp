@@ -86,6 +86,11 @@ actions are absent from the [official WHMCS action API index](https://developers
 `UpdateClientProduct` modifies a client's service and is not a catalog update.
 Use the WHMCS admin UI to update products or manage groups.
 
+`WHMCS_ALLOW_MUTATIONS` controls execution, not MCP tool discovery:
+`whmcs_add_product` remains listed when writes are disabled. The other three tools
+have no implementation or registration, and no configuration setting can enable
+them. See the [operation status table](docs/API_REFERENCE.md#unsupported-catalog-operations).
+
 The existing `whmcs_get_product_groups` name and input schema are retained for
 compatibility. On standard installations it may fail: `GetProductGroups` is not an
 official action in that API. A 403 alone does not identify a credential problem.

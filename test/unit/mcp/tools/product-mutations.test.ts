@@ -122,8 +122,8 @@ describe('catalog mutation security and form encoding', () => {
 });
 
 describe('MCP wire compatibility', () => {
-  it('publishes required/optional params and rejects unsupported updates without HTTP', async () => {
-    vi.stubEnv('WHMCS_ALLOW_MUTATIONS', 'true');
+  it.each([undefined, 'false', 'true'])('keeps discovery independent of WHMCS_ALLOW_MUTATIONS=%s and rejects unsupported operations without HTTP', async mutationSetting => {
+    vi.stubEnv('WHMCS_ALLOW_MUTATIONS', mutationSetting);
     const { products, fetchMock } = setup();
     const server = new McpServer({ name: 'product-test', version: '1' });
     registerProductTools(server, { products });
@@ -133,6 +133,10 @@ describe('MCP wire compatibility', () => {
       await server.connect(serverTransport);
       await client.connect(clientTransport);
       const { tools } = await client.listTools();
+      expect(tools.map(tool => tool.name)).toEqual([
+        'whmcs_get_product_full', 'whmcs_get_product_groups',
+        'whmcs_get_client_addons', 'whmcs_add_product',
+      ]);
       const add = tools.find(tool => tool.name === 'whmcs_add_product')!;
       expect(add.inputSchema.required).toEqual(['name', 'gid', 'confirm']);
       expect(add.inputSchema.properties).toHaveProperty('pricing');
@@ -146,8 +150,14 @@ describe('MCP wire compatibility', () => {
       expect(invalid.isError).toBe(true);
       expect(fetchMock).not.toHaveBeenCalled();
       const created = await client.callTool({ name: add.name, arguments: minimal });
-      expect(created.isError).not.toBe(true);
-      expect(fetchMock).toHaveBeenCalledTimes(1);
+      if (mutationSetting === 'true') {
+        expect(created.isError).not.toBe(true);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+      } else {
+        expect(created.isError).toBe(true);
+        expect(JSON.stringify(created.content)).toContain('WHMCS_ALLOW_MUTATIONS=true');
+        expect(fetchMock).not.toHaveBeenCalled();
+      }
     } finally { await client.close(); await server.close(); }
   });
 });

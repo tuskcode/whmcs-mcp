@@ -282,6 +282,13 @@ MCP tools are not exposed. Configure existing products and groups in the WHMCS
 admin UI. Do not grant service mutation permissions as a substitute:
 `UpdateClientProduct` edits a client's purchased service.
 
+The mutation flag does not hide tools from MCP discovery. `whmcs_add_product` is
+always registered by `registerProductTools`, including when the flag is unset or
+`false`; its handler then rejects execution before HTTP. The three unsupported
+catalog tools have neither handlers nor registrations, so changing this flag, API
+permissions or refreshing the client cannot make them available. See the
+[per-operation implementation and exposure table](API_REFERENCE.md#unsupported-catalog-operations).
+
 ## Diagnosing GetProductGroups and HTTP 403
 
 The [official WHMCS action API index](https://developers.whmcs.com/api/api-index)
