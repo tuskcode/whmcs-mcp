@@ -1574,17 +1574,14 @@ server.registerPrompt(
                     text: `I want to set up a new ${productType} product called "${productName}" in WHMCS.
 
 Please help me:
-1. First, use whmcs_get_product_groups to see existing product groups
+1. First, inspect existing products and group IDs with whmcs_get_products; confirm group details in WHMCS admin (GetProductGroups is not an official action API operation)
 2. Advise on pricing strategy based on existing products (whmcs_get_products)
 3. Recommend appropriate billing cycles
 4. Suggest relevant configurable options
 
 For ${productType === 'hosting' ? 'hosting products, also consider server assignment (whmcs_get_servers)' : productType === 'domain' ? 'domain products, review TLD pricing (whmcs_get_tld_pricing)' : 'this product type, consider any module integrations needed'}
 
-Note: Product creation itself must be done in WHMCS admin, but I can help you:
-- Plan the product configuration
-- Set up associated pricing
-- Create promotional codes (if needed)`,
+After reviewing the configuration, a catalog product can be created with whmcs_add_product if WHMCS_ALLOW_MUTATIONS=true and you explicitly supply confirm: true. Choose pricing, visibility, provisioning and setup settings explicitly; omitted fields use WHMCS defaults. Updating catalog products or creating/updating groups must be done in WHMCS admin because the public action API does not document those operations.`,
                 },
             },
         ],

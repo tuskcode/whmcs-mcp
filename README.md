@@ -55,8 +55,56 @@ Real-time data endpoints for instant access:
 
 ### Product Management
 - List available products
-- Get product groups
+- Inspect product groups on installations that provide the legacy `GetProductGroups` action (not in the official action API index)
 - View product pricing
+- Create catalog products with `whmcs_add_product` (`AddProduct`), guarded by `WHMCS_ALLOW_MUTATIONS=true` and `confirm: true`
+
+Product creation requires `name` and an existing group ID (`gid`). Prices, billing
+cycles, visibility, provisioning modules and other documented options are optional;
+only explicitly supplied options are sent. WHMCS defaults still apply to omitted
+fields. Review those defaults before enabling writes.
+
+```json
+{
+  "name": "whmcs_add_product",
+  "arguments": {
+    "name": "Example Hosting",
+    "gid": 1,
+    "type": "hostingaccount",
+    "hidden": true,
+    "paytype": "recurring",
+    "pricing": { "1": { "monthly": "9.90", "msetupfee": "0.00" } },
+    "confirm": true
+  }
+}
+```
+
+The API credentials need permission for `AddProduct`; the associated administrator
+needs **API Access**. `whmcs_update_product`, `whmcs_add_product_group` and
+`whmcs_update_product_group` are not registered because their corresponding catalog
+actions are absent from the [official WHMCS action API index](https://developers.whmcs.com/api/api-index).
+`UpdateClientProduct` modifies a client's service and is not a catalog update.
+Use the WHMCS admin UI to update products or manage groups.
+
+The existing `whmcs_get_product_groups` name and input schema are retained for
+compatibility. On standard installations it may fail: `GetProductGroups` is not an
+official action in that API. A 403 alone does not identify a credential problem.
+Both HTTP clients now distinguish WHMCS error envelopes from HTTP errors without
+such an envelope, report response format and flag Cloudflare indicators without
+printing response bodies or headers. See the [403 diagnostic procedure](docs/CONFIGURATION.md#diagnosing-getproductgroups-and-http-403)
+and [complete product parameters](docs/API_REFERENCE.md#whmcs_add_product).
+
+To deploy the local changes with Docker, set `WHMCS_ALLOW_MUTATIONS=true` in your
+deployment environment only when writes are intended, then run:
+
+```bash
+docker compose up -d --build --force-recreate whmcs-mcp-server
+docker compose logs --tail=50 whmcs-mcp-server
+```
+
+Reconnect your MCP client to refresh its tool list. For clients that launch their
+own `docker run --rm -i` process, rebuild the image with `npm run docker:build` and
+restart that MCP connection, passing the environment variable to the container.
 
 ### Billing & Invoices
 - List and filter invoices

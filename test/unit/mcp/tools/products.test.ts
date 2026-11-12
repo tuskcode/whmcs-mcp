@@ -37,7 +37,7 @@ function makeServer() {
 }
 
 describe('registerProductTools', () => {
-  it('registers 3 product tools', () => {
+  it('preserves the 3 read tools and registers only the supported catalog mutation', () => {
     const { mcp } = makeServer();
     registerProductTools(mcp as never, { products });
     const names = mcp.registerTool.mock.calls.map((c: any) => c[0]);
@@ -45,6 +45,7 @@ describe('registerProductTools', () => {
       'whmcs_get_product_full',
       'whmcs_get_product_groups',
       'whmcs_get_client_addons',
+      'whmcs_add_product',
     ]);
   });
 

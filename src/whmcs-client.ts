@@ -1,4 +1,4 @@
-import { redact } from './security/redact.js';
+import { readWhmcsResponse } from './whmcs/response.js';
 import { apiEndpoint } from './security/endpoint.js';
 /**
  * WHMCS API Client
@@ -53,17 +53,7 @@ export class WhmcsApiClient {
             body: new URLSearchParams(postData).toString(),
         });
 
-        if (!response.ok) {
-            throw new Error(`WHMCS API request failed: ${response.status} ${response.statusText}`);
-        }
-
-        const data = redact(await response.json() as T, [this.config.apiIdentifier, this.config.apiSecret, this.config.accessKey]);
-        
-        if (data.result === 'error') {
-            throw new Error(`WHMCS API error: ${data.message || 'Unknown error'}`);
-        }
-
-        return data;
+        return readWhmcsResponse<T>(response, action, [this.config.apiIdentifier, this.config.apiSecret, this.config.accessKey]);
     }
 
     /**

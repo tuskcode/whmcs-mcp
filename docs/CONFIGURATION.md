@@ -253,3 +253,113 @@ without manually reviewing their contents: its PII scrubber is not exhaustive.
 Token-bearing URLs (including SSO login links) and SSO tokens are also redacted;
 the auto-auth tool therefore no longer exposes usable login credentials to the AI.
 Retrieve login links directly through the trusted WHMCS administration interface.
+
+## Catalog product creation permissions
+
+`whmcs_add_product` uses the public
+[AddProduct action](https://developers.whmcs.com/api-reference/addproduct).
+
+1. Grant the credential's API role access to `AddProduct`. Keep existing read
+   permissions such as `GetProducts` for catalog inspection.
+2. The associated administrator's role must have **API Access**, as required by
+   [WHMCS authentication](https://developers.whmcs.com/api/authentication).
+3. Keep the existing API IP restrictions and HTTPS controls. Check the allowed
+   outbound IP of the deployed server against the WHMCS API allowlist.
+4. Set `WHMCS_ALLOW_MUTATIONS=true` in the MCP server/container environment when
+   catalog writes are intended. The default remains disabled.
+5. Include boolean `confirm: true` in each write call. A string `"true"` is invalid.
+
+Both mutation checks and Zod validation run before HTTP. `name` and an existing
+positive `gid` are required. Module, pricing, visibility, setup and renewal options
+are sent only when supplied. Review WHMCS defaults for omitted options. The server
+does not choose a provisioning module or fill in prices. Custom renewal fields
+require `ondemandrenewalconfigurationoverride: true`. See the
+[parameter reference and examples](API_REFERENCE.md#whmcs_add_product).
+
+There are no public action API catalog actions named `UpdateProduct`,
+`AddProductGroup` or `UpdateProductGroup` in the verified index; their requested
+MCP tools are not exposed. Configure existing products and groups in the WHMCS
+admin UI. Do not grant service mutation permissions as a substitute:
+`UpdateClientProduct` edits a client's purchased service.
+
+## Diagnosing GetProductGroups and HTTP 403
+
+The [official WHMCS action API index](https://developers.whmcs.com/api/api-index)
+and reference do not list `GetProductGroups`. The existing
+`whmcs_get_product_groups` tool and its empty input schema are retained for
+compatibility with installations providing that action. The tool reports this
+limitation when the request fails. Increasing permissions cannot make an absent
+action available. No database, admin endpoint or fallback request is attempted.
+
+The code sends `GetProducts` and `GetProductGroups` through the same client, using
+`POST` with `application/x-www-form-urlencoded` to
+`<WHMCS_API_URL>/includes/api.php`. `identifier`, `secret`, optional configured
+`accesskey`, `action` and `responsetype=json` are in the request body. Redirects are
+rejected. `WHMCS_API_URL` is the WHMCS installation base URL (including any
+subdirectory), not a URL already ending in `includes/api.php`.
+
+Both HTTP clients now distinguish:
+
+| Response | Diagnostic | Interpretation |
+|----------|------------|----------------|
+| JSON object with `result: "error"` | `WHMCS API error (Action): ...` | WHMCS-style application error; sanitized message retained; an unsuccessful HTTP status is also reported |
+| HTTP 403 without that error envelope | `WHMCS HTTP error (Action): 403 Forbidden; response=HTML/JSON/other...` | HTTP refusal; credentials, role failure or WAF cannot be determined from status alone |
+| HTTP error with Cloudflare header/body markers | Adds `Cloudflare indicators present` | Cloudflare participated; proxy/WAF blocking is possible, not confirmed |
+| Successful HTTP with HTML, malformed JSON, null or non-object JSON | `WHMCS returned non-JSON or invalid response...` | Not a usable WHMCS API response; inspect server-side logs |
+
+Troubleshooting procedure:
+
+1. Verify action availability in the API reference for the installed WHMCS
+   version. `GetProducts` succeeding confirms that the base URL, transport and
+   credentials work for that call; it does not establish support for another action.
+2. For a WHMCS application denial on a documented action, check credential API
+   roles and the associated administrator's **API Access** permission. Compare the
+   sanitized message with WHMCS logs. API role authorization is action-specific.
+3. Check WHMCS API IP restrictions and the actual deployment's egress IP, following
+   [official access control documentation](https://developers.whmcs.com/api/access-control).
+   Do not disable IP checks or add bypass keys to work around this error.
+4. For an HTTP 403 without a WHMCS envelope, correlate the failing action and time
+   with web server, reverse proxy, ModSecurity/WAF and Cloudflare security events.
+   Action-specific filtering or a custom endpoint policy may explain why the same
+   credentials work for `GetProducts`. HTML/Cloudflare indicators support that
+   possibility but do not prove the exact source.
+5. Confirm the configured base URL and POST route in the deployment configuration.
+   A proxy can reject a request before WHMCS processes its action; an unsupported
+   action is a separate defect from an HTTP-level rejection.
+
+HTTP status reason phrases come from Node's standard status table rather than
+untrusted response text. Raw bodies, arbitrary header values, cookies, URLs and
+credentials are excluded from HTTP diagnostics. Application responses reuse the
+existing credential redaction. `WHMCS_DEBUG=true` logs only generic request/status
+metadata, never full payloads. Diagnosing this production 403 definitively requires
+server-side evidence; development tests use mocks only and do not contact WHMCS.
+
+WHMCS 9.0+ also has a separate REST API v2 with store group reads. That API does
+not make `GetProductGroups` a valid action on `includes/api.php`; no v2 transport
+or authentication change is introduced here.
+
+## Deploying catalog tool changes with Docker
+
+Keep the existing Compose service and Docker configuration. Add or update the
+following only if you intend to enable writes in the deployment environment:
+
+```dotenv
+WHMCS_ALLOW_MUTATIONS=true
+```
+
+Rebuild and recreate the existing service from the updated source:
+
+```bash
+docker compose up -d --build --force-recreate whmcs-mcp-server
+docker compose logs --tail=50 whmcs-mcp-server
+```
+
+A restart alone does not rebuild the image or apply changed container environment
+variables. Reconnect the MCP client to refresh tool discovery. If the client starts
+the server itself with `docker run --rm -i`, run `npm run docker:build`, restart its
+MCP connection and pass the mutation setting to that container with its existing
+environment configuration. A separately started Compose container is not a
+replacement for a client's stdio connection.
+
+Local verification uses `npm ci`, `npm run build`, `npm run lint` (type-check),
+and `npm test`. Do not use `npm run test:live` or fixture capture for mutation tests.

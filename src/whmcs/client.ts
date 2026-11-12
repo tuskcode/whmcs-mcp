@@ -1,6 +1,6 @@
-import { redact } from '../security/redact.js';
 import { apiEndpoint } from '../security/endpoint.js';
 import type { WhmcsApiResponse, WhmcsClientConfig } from './types.js';
+import { readWhmcsResponse } from './response.js';
 
 export class WhmcsClient {
   private endpoint: string;
@@ -19,10 +19,15 @@ export class WhmcsClient {
       secret: this.config.secret,
       responsetype: 'json',
       ...(this.config.accesskey ? { accesskey: this.config.accesskey } : {}),
-      ...Object.fromEntries(
-        Object.entries(params).map(([k, v]) => [k, v == null ? '' : String(v)]),
-      ),
     });
+    // PHP-style form arrays, as used by AddProduct pricing and recommendations.
+    // Preserve existing scalar and null serialization for all existing calls.
+    const append = (key: string, value: unknown): void => {
+      if (value !== null && typeof value === 'object') {
+        for (const [child, item] of Object.entries(value)) append(`${key}[${child}]`, item);
+      } else body.set(key, value == null ? '' : String(value));
+    };
+    for (const [key, value] of Object.entries(params)) append(key, value);
 
     const url = this.endpoint;
 
@@ -42,30 +47,10 @@ export class WhmcsClient {
       throw new Error(`WHMCS connection error (${action})`);
     }
 
-    if (!res.ok) {
-      throw new Error(`WHMCS HTTP error (${action}): ${res.status} ${res.statusText}`);
-    }
-
-    const rawText = await res.text();
-
     if (process.env.WHMCS_DEBUG === 'true') {
       console.error(`[whmcs-mcp] API response (${res.status})`);
     }
 
-    // WHMCS sometimes returns HTML (PHP errors/warnings) instead of JSON
-    let data: T & WhmcsApiResponse;
-    try {
-      data = JSON.parse(rawText) as T & WhmcsApiResponse;
-    } catch {
-      throw new Error(`WHMCS returned non-JSON response for "${action}"`);
-    }
-
-    data = redact(data, [this.config.identifier, this.config.secret, this.config.accesskey]);
-
-    if (data.result === 'error') {
-      throw new Error(`WHMCS API error (${action}): ${data.message ?? 'unknown'}`);
-    }
-
-    return data;
+    return readWhmcsResponse<T>(res, action, [this.config.identifier, this.config.secret, this.config.accesskey]);
   }
 }

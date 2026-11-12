@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Catalog creation and HTTP diagnostics
+- Added `whmcs_add_product` using the public `AddProduct` action and the existing
+  mutation guard (`WHMCS_ALLOW_MUTATIONS=true` plus boolean `confirm: true`).
+  Strict Zod validation supports the documented product options without injecting
+  prices, module configuration or setup defaults.
+- Added PHP form encoding for nested product pricing and recommendations in the
+  domain HTTP client; explicit product booleans use `1`/`0`.
+- Unified safe response diagnostics across both WHMCS clients: application error
+  envelopes, HTTP refusals, response format and possible Cloudflare involvement.
+  HTTP response bodies and header values are not exposed.
+- Retained the existing `whmcs_get_product_groups` tool/schema and added diagnostics
+  explaining that `GetProductGroups` is absent from the official action API index.
+- Documented that `UpdateProduct`, `AddProductGroup` and `UpdateProductGroup` are
+  not public catalog actions; no corresponding MCP tools, service substitutions,
+  deletion tools, database workarounds or private admin endpoints were added.
+- Added mocked mutation, validation, HTTP/application error and MCP SDK tests,
+  including rejection of unsupported catalog updates before any HTTP call.
+- Updated product setup guidance, API parameters, permissions, 403 troubleshooting
+  and Docker deployment instructions. No new dependencies or Docker/transport changes.
+
 ### Added
 - `investigate-service` prompt — guided provisioning diagnostics chain
 - `investigate-invoice` prompt — guided invoice/payment diagnostics chain
